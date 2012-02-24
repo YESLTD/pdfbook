@@ -88,11 +88,19 @@ class PdfBook {
 			if ($title->getNamespace() == NS_CATEGORY) {
 				$db     = &wfGetDB(DB_SLAVE);
 				$cat    = $db->addQuotes($title->getDBkey());
-	    			$result = $db->query("select cl_from, cl_sortkey, to_title as level from categorylinks left outer join fchw_relation on (from_id = cl_from) where cl_to = $cat and ((relation is null) or (upper(relation) = 'LEVEL')) group by cl_from, cl_sortkey, level");
-				//if ($result instanceof ResultWrapper) $result = $result->result;
+	    			$result = $db->query("select page_id from page where page_namespace=14 and page_title='".$wgTitle->mTextform."'");
 				while ($row = $db->fetchObject($result)) {
+//				    print($row->page_id."\n");
+				    $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$row->page_id] = Title::newFromID($row->page_id);					
+				}
+				//if ($result instanceof ResultWrapper) $result = $result->result;
+//		    	        $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$article->getID()] = Title::newFromID($article->getID());					
+        			$result = $db->query("select cl_from, cl_sortkey, to_title as level from categorylinks left outer join fchw_relation on (from_id = cl_from) where cl_to = $cat and ((relation is null) or (upper(relation) = 'LEVEL')) group by cl_from, cl_sortkey, level");
+				while ($row = $db->fetchObject($result)) {
+//				    print($row->cl_from."\n");
 				    $articles[str_pad($row->level, 10, "0", STR_PAD_LEFT)."_".$row->cl_from] = Title::newFromID($row->cl_from);					
 				}
+//				die();
     				ksort($articles);
 			}
 			else {
