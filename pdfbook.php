@@ -14,6 +14,7 @@ $PdfBookCodePage	= "";
 
 
 $dir = dirname(__FILE__) . '/';
+require_once($dir.'checkpdfbook.php');
 $wgExtensionMessagesFiles['pdfbook'] = $dir.'pdfbook.i18n.php';
 $wgPdfBookMagic                = "book";
 $wgExtensionFunctions[]        = 'wfSetupPdfBook';
