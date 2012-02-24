@@ -1,8 +1,27 @@
 <?php
-# Extension:PdfBook
-# - Licenced under LGPL (http://www.gnu.org/copyleft/lesser.html)
-# - Author: [http://www.organicdesign.co.nz/nad User:Nad]
-# - Started: 2007-08-08
+
+//////////////////////////////////////////////////////////////
+//
+//    Copyright: Author: [http://www.organicdesign.co.nz/nad User:Nad]
+//               Started: 2007-08-08
+//    Modifications Copyright by Thomas Kock, Delmenhorst, 2008, 2009
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+// http://www.gnu.org/copyleft/gpl.html
+//
+//////////////////////////////////////////////////////////////
 
 if (!defined('MEDIAWIKI')) die('Not an entry point.');
 
@@ -97,7 +116,7 @@ class PdfBook {
                 }
                 //if ($result instanceof ResultWrapper) $result = $result->result;
                 //		    	        $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$article->getID()] = Title::newFromID($article->getID());
-                $result = $db->query("select cl_from, cl_sortkey, to_title as level from  ".$wgDBprefix."categorylinks left outer join fchw_relation on (from_id = cl_from) where cl_to = $cat and ((relation is null) or (upper(relation) = 'LEVEL')) group by cl_from, cl_sortkey, level");
+                $result = $db->query("select cl_from, cl_sortkey, to_title as level from  ".$wgDBprefix."categorylinks left outer join ".$wgDBprefix."fchw_relation on (from_id = cl_from) where cl_to = $cat and ((relation is null) or (upper(relation) = 'LEVEL')) group by cl_from, cl_sortkey, level");
                 while ($row = $db->fetchObject($result)) {
                     //				    print($row->cl_from."\n");
                     $articles[str_pad($row->level, 10, "0", STR_PAD_LEFT)."_".$row->cl_from] = Title::newFromID($row->cl_from);
@@ -183,13 +202,25 @@ class PdfBook {
                 $htmldocpath = $PdfBookHtmlDoc;
                 putenv("HTMLDOC_NOCGI=1");
                 if (substr(php_uname(), 0, 7) == "Windows") {
-                    $cmd  = escapeshellarg($htmldocpath)." -t pdf $charset $cmd -f ".escapeshellarg($file2.".pdf")." ".escapeshellarg($file2)."";
+                    $exec  = escapeshellarg($htmldocpath)." -t pdf $charset $cmd -f ".escapeshellarg($file2.".pdf")." ".escapeshellarg($file2)."";
                     $obj = new COM("WScript.Shell");
-                    $obj->Run($cmd, 1, true);
+                    if (substr($_SERVER["SERVER_SOFTWARE"],0,6) == "Apache") {
+                        $obj->Run($exec, 0, true);
+                    } else {
+                        // for IIS
+                        $Res = $obj->Exec("".$exec);
+                    }
+                    // On Windows, PHP sometimes does not immediately recognize that the file is there.
+                    // http://de.php.net/manual/en/function.file-exists.php#56121
+                    $start = gettimeofday();
+                    while (!file_exists($file2.".pdf")) {
+                        $stop = gettimeofday();
+                        if ( 1000000 * ($stop['sec'] - $start['sec']) + $stop['usec'] - $start['usec'] > 500000) break;  // wait a moment
+                    }
                     readfile($file2.".pdf");
                 } else {
-                    $cmd  = escapeshellarg($htmldocpath)." -t pdf $charset $cmd ".escapeshellarg($file2)."";
-                    passthru($cmd);
+                    $exec  = escapeshellarg($htmldocpath)." -t pdf $charset $cmd ".escapeshellarg($file2)."";
+                    passthru($exec);
                 }
                 @unlink($file2);
                 @unlink($file2.".pdf");

@@ -1,0 +1,16 @@
+PDFBook for FlowchartWiki
+
+Version: 1.1.0-RC4
+Release Date: 2009-03-30
+License: GNU Lesser General Public License, Version 2 (or later).
+
+Original Author & Copyright: [http://www.organicdesign.co.nz/nad User:Nad]
+Integration with FlowchartWiki: Copyright: Thomas Kock, Delmenhorst, 2008, 2009
+
+PDFBook for FlowchartWiki is a modified version of the original PDFBook
+extension for MediaWiki.
+This extension can export a complete process as one .pdf document and includes
+a tab at the top of the page on each Category-Page.
+
+For documentation and the latest release and update information,
+please see http://www.flowchartwiki.org

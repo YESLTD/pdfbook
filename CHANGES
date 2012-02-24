@@ -1,4 +1,4 @@
-PdfBook 1.1.0-RC4
+PdfBook 1.1.0
     * pdfbook.php: changed unique-Filename to 'pdf-book-' (added "-")
     * pdfbook.php: added @unlink($file2.".pdf"); to delete temp. pdf.
       previously the directory was filled with temp. .pdf files and required

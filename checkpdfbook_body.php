@@ -5,16 +5,16 @@
 //    Copyright (C) Thomas Kock, Delmenhorst, 2009
 //
 // This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation; either version 2 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License along
+// You should have received a copy of the GNU Lesser General Public License along
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 // http://www.gnu.org/copyleft/gpl.html
@@ -48,6 +48,7 @@ class CheckPdfBook extends SpecialPage {
 
         # Output
         $output = "";
+        $output .= "<p>Web Server: <strong>".$_SERVER["SERVER_SOFTWARE"]."</strong></p>";
         $output .= "<p>PHP version: <strong>".phpversion()."</strong></p>";
         $output .= "<p>Platform: <strong>".php_uname()."</strong></p>";
         $output .= "<p>Mediawiki version: <strong>".$wgVersion."</strong></p>";
@@ -98,17 +99,34 @@ class CheckPdfBook extends SpecialPage {
 
             $PDF = "";
             if (substr(php_uname(), 0, 7) == "Windows") {
-                $cmd  = escapeshellarg($htmldocpath)." -t pdf $cmd -f ".escapeshellarg($file.".pdf")." ".escapeshellarg($file)."";
-                $obj = new COM("WScript.Shell");
-                $obj->Run($cmd, 1, true);
-                if (file_exists($file.".pdf")) {
-                    $fd = fopen ($file.".pdf", "r");
-                    $PDF = fgets($fd, 10);
-                    fclose($fd);
+                try {
+                    $exec  = escapeshellarg($htmldocpath)." -t pdf $cmd -f ".escapeshellarg($file.".pdf")." ".escapeshellarg($file)."";
+                    $obj = new COM("WScript.Shell");
+                    if (substr($_SERVER["SERVER_SOFTWARE"],0,6) == "Apache") {
+                        $Res = $obj->Run($exec, 0, true);
+                    } else {
+                        // for IIS
+                        $Res = exec("".$exec);
+                    }
+                    // On Windows, PHP sometimes does not immediately recognize that the file is there.
+                    // http://de.php.net/manual/en/function.file-exists.php#56121
+                    $start = gettimeofday();
+                    while (!file_exists($file.".pdf")) {
+                        $stop = gettimeofday();
+                        if ( 1000000 * ($stop['sec'] - $start['sec']) + $stop['usec'] - $start['usec'] > 500000) break;  // wait a moment
+                    }
+
+                    if (file_exists($file.".pdf")) {
+                        $fd = fopen ($file.".pdf", "r");
+                        $PDF = fgets($fd, 10);
+                        fclose($fd);
+                    }
+                } catch (Exception $e) {
+                    $execTestMessage = "<b>Command:</b><br>".$exec."<br><b>Error:</b><br>".$e->__toString();
                 }
             } else {
-                $cmd  = escapeshellarg($htmldocpath)." -t pdf $cmd ".escapeshellarg($file)."";
-                exec($cmd, $PDFarr);
+                $exec  = escapeshellarg($htmldocpath)." -t pdf $cmd ".escapeshellarg($file)."";
+                exec($exec, $PDFarr);
                 $PDF = implode($PDFarr);
             }
             if (strpos($PDF, "%PDF") === false) {
@@ -122,7 +140,7 @@ class CheckPdfBook extends SpecialPage {
             //unlink($file.".pdf");
 
         }
-        $output .= Status($execTest, wfMsg('checkpdfbookHtmlDocExecTest'), $execTestMessage);
+        $output .= Status($execTest, wfMsg('checkpdfbookHtmlDocExecTest'), $execTestMessage."<br>".$exec);
 
         # TOTAL STATUS
         $output .= "<tr><td colspan='2' style='height: 2px'>&nbsp;</td></tr>";
