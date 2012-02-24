@@ -1,3 +1,6 @@
+PdfBook 1.1.1
+   * fixed problems with ' (Apostroph) and " " (Blank) in Category-Names
+
 PdfBook 1.1.0
     * pdfbook.php: changed unique-Filename to 'pdf-book-' (added "-")
     * pdfbook.php: added @unlink($file2.".pdf"); to delete temp. pdf.

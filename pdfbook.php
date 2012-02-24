@@ -109,7 +109,8 @@ class PdfBook {
             if ($title->getNamespace() == NS_CATEGORY) {
                 $db     = &wfGetDB(DB_SLAVE);
                 $cat    = $db->addQuotes($title->getDBkey());
-                $result = $db->query("select page_id from  ".$wgDBprefix."page where page_namespace=14 and page_title='".$wgTitle->mTextform."'");
+                $cat2   = str_replace(" ","_",$db->strencode($wgTitle->mTextform));
+                $result = $db->query("select page_id from  ".$wgDBprefix."page where page_namespace=14 and page_title='".$cat2."'");
                 while ($row = $db->fetchObject($result)) {
                     //				    print($row->page_id."\n");
                     $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$row->page_id] = Title::newFromID($row->page_id);
