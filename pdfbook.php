@@ -8,8 +8,11 @@ if (!defined('MEDIAWIKI')) die('Not an entry point.');
  
 define('PDFBOOK_VERSION','0.0.11, 2008-05-30');
  
-global $PdfBookShowTab;	
-$PdfBookShowTab			= false;
+global $PdfBookShowTab, $PdfBookCodePage;	
+$PdfBookShowTab		= false;
+$PdfBookCodePage	= "";
+
+
 $dir = dirname(__FILE__) . '/';
 $wgExtensionMessagesFiles['pdfbook'] = $dir.'pdfbook.i18n.php';
 $wgPdfBookMagic                = "book";
@@ -55,6 +58,7 @@ class PdfBook {
 	function onUnknownAction($action,$article) {
 		global $wgOut,$wgUser,$wgTitle,$wgParser;
 		global $wgServer,$wgArticlePath,$wgScriptPath,$wgUploadPath,$wgUploadDirectory,$wgScript;
+		global $PdfBookCodePage;
  
 		if ($action == 'pdfbook') {
  
@@ -83,15 +87,12 @@ class PdfBook {
 			if ($title->getNamespace() == NS_CATEGORY) {
 				$db     = &wfGetDB(DB_SLAVE);
 				$cat    = $db->addQuotes($title->getDBkey());
-				$result = $db->select(
-					'categorylinks',
-					'cl_from',
-					"cl_to = $cat",
-					'PdfBook',
-					array('ORDER BY' => 'cl_sortkey')
-				);
-				if ($result instanceof ResultWrapper) $result = $result->result;
-				while ($row = $db->fetchRow($result)) $articles[] = Title::newFromID($row[0]);
+	    			$result = $db->query("select cl_from, cl_sortkey, to_title as level from categorylinks left outer join fchw_relation on (from_id = cl_from) where cl_to = $cat and upper(relation) = 'LEVEL' group by cl_from, cl_sortkey, level");
+				//if ($result instanceof ResultWrapper) $result = $result->result;
+				while ($row = $db->fetchObject($result)) {
+				    $articles[str_pad($row->level, 10, "0", STR_PAD_LEFT)."_".$row->cl_from] = Title::newFromID($row->cl_from);					
+				}
+    				ksort($articles);
 			}
 			else {
 				$text = $article->fetchContent();
@@ -123,7 +124,13 @@ class PdfBook {
 					$text    = preg_replace('|@{4}([^@]+?)@{4}|s','<!--$1-->',$text); # HTML comments hack
 					$text    = preg_replace('|<table|','<table border borderwidth=2 cellpadding=3 cellspacing=0',$text);
 					$ttext   = basename($ttext);
-					$html   .= utf8_decode("<h1>$ttext</h1>$text\n");
+					if ($PdfBookCodePage == "") 	
+    					    $html   .= utf8_decode("<h1>$ttext</h1>$text\n");
+					  else
+					if ($PdfBookCodePage == "iso-8859-2") 	
+					    $html   .= UTF8toISO88592("<h1>$ttext</h1>$text\n");
+					  else
+					    die("Codepage $PdfBookCodePage is not supported");
 				}
 			}
  
@@ -141,6 +148,10 @@ class PdfBook {
 				fwrite($fh,$html);
 				fclose($fh);
  
+				$charset = "";
+				if ($PdfBookCodePage != "") 
+				    $charset = " --charset $PdfBookCodePage ";
+ 
 				# Send the file to the client via htmldoc converter
 				$wgOut->disable();
 				header("Content-Type: application/pdf");
@@ -150,7 +161,7 @@ class PdfBook {
 				$cmd .= " --headfootsize 8 --quiet --jpeg --color";
 				$cmd .= " --bodyfont $font --fontsize $size --linkstyle plain --linkcolor $link";
 				$cmd .= " --toclevels $levels --format pdf14 --numbered $layout";
-			        //$cmd  = "htmldoc -t pdf --charset iso-8859-1 $cmd $file";
+			        //$cmd  = "htmldoc -t pdf $charset $cmd $file";
 	$file2  = str_replace('/', DIRECTORY_SEPARATOR, $file);
 	//				echo($cmd);			
 	global $PdfBookHtmlDoc;
@@ -160,12 +171,12 @@ class PdfBook {
 	    $htmldocpath = $PdfBookHtmlDoc;
 	putenv("HTMLDOC_NOCGI=1");
 	if (substr(php_uname(), 0, 7) == "Windows") {
-	    $cmd  = escapeshellarg($htmldocpath)." -t pdf $cmd -f ".escapeshellarg($file2.".pdf")." ".escapeshellarg($file2)."";
+	    $cmd  = escapeshellarg($htmldocpath)." -t pdf $charset $cmd -f ".escapeshellarg($file2.".pdf")." ".escapeshellarg($file2)."";
 	    $obj = new COM("WScript.Shell");
 	    $obj->Run($cmd, 1, true);
 	    readfile($file2.".pdf");
 	} else {
-	    $cmd  = escapeshellarg($htmldocpath)." -t pdf $cmd ".escapeshellarg($file2)."";
+	    $cmd  = escapeshellarg($htmldocpath)." -t pdf $charset $cmd ".escapeshellarg($file2)."";
 	    passthru($cmd);
 	}
 					@unlink($file2);
@@ -224,3 +235,57 @@ function wfPdfBookActionContentHook( &$content_actions ) {
     return true;
 }
 
+static $UTF8_ISO88592 = array(
+		"\xC3\x81" => "Á",  
+		"\xC3\x84" => "Ä",  
+		"\xC4\x86" => "Æ",  
+		"\xC4\x8C" => "È",  
+		"\xC4\x8E" => "Ï",  
+		"\xC3\x89" => "É",  
+		"\xC4\x9A" => "Ì",  
+		"\xC3\x8D" => "Í",  
+		"\xC4\xBB" => "Å",  
+		"\xC4\xBD" => "¥",  
+		"\xC5\x87" => "Ò",  
+		"\xC3\x93" => "Ó",  
+		"\xC3\x94" => "Ô",  
+		"\xC3\x96" => "Ö",  
+		"\xC5\x94" => "À",  
+		"\xC5\x98" => "Ø",  
+		"\xC5\xA0" => "©",  
+		"\xC5\xA4" => "«",  
+		"\xC3\x9A" => "Ú",  
+		"\xC5\xAE" => "Ù",  
+		"\xC3\x9C" => "Ü",  
+		"\xC3\x9D" => "Ý",  
+		"\xC5\xBD" => "®",  
+		"\xC3\x9F" => "ß",  
+		"\xC3\xA1" => "á",  
+		"\xC3\xA4" => "ä",  
+		"\xC4\x87" => "æ",  
+		"\xC4\x8D" => "è",  
+		"\xC4\x8F" => "ï",   
+		"\xC3\xA9" => "é",  
+		"\xC4\x9B" => "ì",  
+		"\xC3\xAD" => "í",  
+		"\xC4\xBA" => "å",  
+		"\xC4\xBE" => "µ",  
+		"\xC5\x88" => "ò",  
+		"\xC3\xB3" => "ó",  
+		"\xC3\xB4" => "ô",  
+		"\xC3\xB6" => "ö",  
+		"\xC5\x95" => "à",  
+		"\xC5\x99" => "ø",  
+		"\xC5\xA1" => "¹",  
+		"\xC5\xA5" => "»",  
+		"\xC3\xBA" => "ú",  
+		"\xC5\xAF" => "ù",  
+		"\xC3\xBC" => "ü",  
+		"\xC3\xBD" => "ý",  
+		"\xC5\xBE" => "¾"  
+		);
+
+function UTF8toISO88592($input) {
+    global $UTF8_ISO88592;
+    return strtr($input, $UTF8_ISO88592);
+}
