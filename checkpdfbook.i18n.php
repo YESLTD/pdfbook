@@ -10,6 +10,8 @@ $messages['en'] = array(
 	'checkpdfbookHtmlDocPathHint' => 'Missing variable $PdfBookHtmlDoc in LocalSettings.php',
 	'checkpdfbookHtmlDocExec' => 'HtmlDoc executable',
 	'checkpdfbookHtmlDocExecHint' => 'Please correct path to HtmlDoc',
+	'checkpdfbookHtmlDocExecTest' => 'Make sample PDF via HtmlDoc',
+	'checkpdfbookHtmlDocExecTestHint' => 'Something is wrong',
 	'checkpdfbookTotal' => 'Total status'
         );
 

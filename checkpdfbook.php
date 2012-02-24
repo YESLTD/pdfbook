@@ -23,4 +23,3 @@ function checkpdfbookLocalizedPageName(&$specialPageArray, $code) {
   $title = Title::newFromText($text); 
   return true;
 }
-

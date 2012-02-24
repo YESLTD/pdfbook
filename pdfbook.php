@@ -14,6 +14,7 @@ $PdfBookCodePage	= "";
 
 
 $dir = dirname(__FILE__) . '/';
+require_once($dir.'version.php');
 require_once($dir.'checkpdfbook.php');
 $wgExtensionMessagesFiles['pdfbook'] = $dir.'pdfbook.i18n.php';
 $wgPdfBookMagic                = "book";
@@ -59,6 +60,7 @@ class PdfBook {
 	function onUnknownAction($action,$article) {
 		global $wgOut,$wgUser,$wgTitle,$wgParser;
 		global $wgServer,$wgArticlePath,$wgScriptPath,$wgUploadPath,$wgUploadDirectory,$wgScript;
+		global $wgDBprefix;
 		global $PdfBookCodePage;
  
 		if ($action == 'pdfbook') {
@@ -88,14 +90,14 @@ class PdfBook {
 			if ($title->getNamespace() == NS_CATEGORY) {
 				$db     = &wfGetDB(DB_SLAVE);
 				$cat    = $db->addQuotes($title->getDBkey());
-	    			$result = $db->query("select page_id from page where page_namespace=14 and page_title='".$wgTitle->mTextform."'");
+	    			$result = $db->query("select page_id from  ".$wgDBprefix."page where page_namespace=14 and page_title='".$wgTitle->mTextform."'");
 				while ($row = $db->fetchObject($result)) {
 //				    print($row->page_id."\n");
 				    $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$row->page_id] = Title::newFromID($row->page_id);					
 				}
 				//if ($result instanceof ResultWrapper) $result = $result->result;
 //		    	        $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$article->getID()] = Title::newFromID($article->getID());					
-        			$result = $db->query("select cl_from, cl_sortkey, to_title as level from categorylinks left outer join fchw_relation on (from_id = cl_from) where cl_to = $cat and ((relation is null) or (upper(relation) = 'LEVEL')) group by cl_from, cl_sortkey, level");
+        			$result = $db->query("select cl_from, cl_sortkey, to_title as level from  ".$wgDBprefix."categorylinks left outer join fchw_relation on (from_id = cl_from) where cl_to = $cat and ((relation is null) or (upper(relation) = 'LEVEL')) group by cl_from, cl_sortkey, level");
 				while ($row = $db->fetchObject($result)) {
 //				    print($row->cl_from."\n");
 				    $articles[str_pad($row->level, 10, "0", STR_PAD_LEFT)."_".$row->cl_from] = Title::newFromID($row->cl_from);					
@@ -156,7 +158,7 @@ class PdfBook {
 				$fh = fopen($file,'w+');
 				fwrite($fh,$html);
 				fclose($fh);
- 
+				
 				$charset = "";
 				if ($PdfBookCodePage != "") 
 				    $charset = " --charset $PdfBookCodePage ";
@@ -245,53 +247,53 @@ function wfPdfBookActionContentHook( &$content_actions ) {
 }
 
 static $UTF8_ISO88592 = array(
-		"\xC3\x81" => "Á",  
-		"\xC3\x84" => "Ä",  
-		"\xC4\x86" => "Æ",  
-		"\xC4\x8C" => "È",  
-		"\xC4\x8E" => "Ï",  
-		"\xC3\x89" => "É",  
-		"\xC4\x9A" => "Ì",  
-		"\xC3\x8D" => "Í",  
-		"\xC4\xBB" => "Å",  
-		"\xC4\xBD" => "¥",  
-		"\xC5\x87" => "Ò",  
-		"\xC3\x93" => "Ó",  
-		"\xC3\x94" => "Ô",  
-		"\xC3\x96" => "Ö",  
-		"\xC5\x94" => "À",  
-		"\xC5\x98" => "Ø",  
-		"\xC5\xA0" => "©",  
-		"\xC5\xA4" => "«",  
-		"\xC3\x9A" => "Ú",  
-		"\xC5\xAE" => "Ù",  
-		"\xC3\x9C" => "Ü",  
-		"\xC3\x9D" => "Ý",  
-		"\xC5\xBD" => "®",  
-		"\xC3\x9F" => "ß",  
-		"\xC3\xA1" => "á",  
-		"\xC3\xA4" => "ä",  
-		"\xC4\x87" => "æ",  
-		"\xC4\x8D" => "è",  
-		"\xC4\x8F" => "ï",   
-		"\xC3\xA9" => "é",  
-		"\xC4\x9B" => "ì",  
-		"\xC3\xAD" => "í",  
-		"\xC4\xBA" => "å",  
-		"\xC4\xBE" => "µ",  
-		"\xC5\x88" => "ò",  
-		"\xC3\xB3" => "ó",  
-		"\xC3\xB4" => "ô",  
-		"\xC3\xB6" => "ö",  
-		"\xC5\x95" => "à",  
-		"\xC5\x99" => "ø",  
-		"\xC5\xA1" => "¹",  
-		"\xC5\xA5" => "»",  
-		"\xC3\xBA" => "ú",  
-		"\xC5\xAF" => "ù",  
-		"\xC3\xBC" => "ü",  
-		"\xC3\xBD" => "ý",  
-		"\xC5\xBE" => "¾"  
+		"\xC3\x81" => "ï¿½",  
+		"\xC3\x84" => "ï¿½",  
+		"\xC4\x86" => "ï¿½",  
+		"\xC4\x8C" => "ï¿½",  
+		"\xC4\x8E" => "ï¿½",  
+		"\xC3\x89" => "ï¿½",  
+		"\xC4\x9A" => "ï¿½",  
+		"\xC3\x8D" => "ï¿½",  
+		"\xC4\xBB" => "ï¿½",  
+		"\xC4\xBD" => "ï¿½",  
+		"\xC5\x87" => "ï¿½",  
+		"\xC3\x93" => "ï¿½",  
+		"\xC3\x94" => "ï¿½",  
+		"\xC3\x96" => "ï¿½",  
+		"\xC5\x94" => "ï¿½",  
+		"\xC5\x98" => "ï¿½",  
+		"\xC5\xA0" => "ï¿½",  
+		"\xC5\xA4" => "ï¿½",  
+		"\xC3\x9A" => "ï¿½",  
+		"\xC5\xAE" => "ï¿½",  
+		"\xC3\x9C" => "ï¿½",  
+		"\xC3\x9D" => "ï¿½",  
+		"\xC5\xBD" => "ï¿½",  
+		"\xC3\x9F" => "ï¿½",  
+		"\xC3\xA1" => "ï¿½",  
+		"\xC3\xA4" => "ï¿½",  
+		"\xC4\x87" => "ï¿½",  
+		"\xC4\x8D" => "ï¿½",  
+		"\xC4\x8F" => "ï¿½",   
+		"\xC3\xA9" => "ï¿½",  
+		"\xC4\x9B" => "ï¿½",  
+		"\xC3\xAD" => "ï¿½",  
+		"\xC4\xBA" => "ï¿½",  
+		"\xC4\xBE" => "ï¿½",  
+		"\xC5\x88" => "ï¿½",  
+		"\xC3\xB3" => "ï¿½",  
+		"\xC3\xB4" => "ï¿½",  
+		"\xC3\xB6" => "ï¿½",  
+		"\xC5\x95" => "ï¿½",  
+		"\xC5\x99" => "ï¿½",  
+		"\xC5\xA1" => "ï¿½",  
+		"\xC5\xA5" => "ï¿½",  
+		"\xC3\xBA" => "ï¿½",  
+		"\xC5\xAF" => "ï¿½",  
+		"\xC3\xBC" => "ï¿½",  
+		"\xC3\xBD" => "ï¿½",  
+		"\xC5\xBE" => "ï¿½"  
 		);
 
 function UTF8toISO88592($input) {

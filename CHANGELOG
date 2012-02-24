@@ -1,0 +1,15 @@
+PdfBook 1.1.0-RC3
+    
+    * Special:CheckPdfBook create sample pdf to check proper installation
+    * Added DB prefix to Special:CheckPdfBook page
+
+PdfBook 1.1.0-RC1
+
+    * Added special page Special:CheckPdfBook to check correct installation Special:CheckPdfBook
+    * PdfBook now should also work when the FlowchartWiki extension is not installed or used in a category. 
+
+PdfBook 1.0.0-RC3
+
+    * Sorted book by Level
+    * Added support for codepage ISO-8859-2 
+
