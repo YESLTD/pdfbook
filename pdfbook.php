@@ -25,13 +25,10 @@
 
 if (!defined('MEDIAWIKI')) die('Not an entry point.');
 
-define('PDFBOOK_VERSION','0.0.11, 2008-05-30');
-
-global $PdfBookShowTab, $PdfBookCodePage;	
-$PdfBookShowTab		= false;
-$PdfBookCodePage	= "";
-
-
+define('PDFBOOK_VERSION','1.1.2');
+global $PdfBookShowTab, $PdfBookCodePage;
+$PdfBookShowTab        = false;
+$PdfBookCodePage    = "";
 $dir = dirname(__FILE__) . '/';
 require_once($dir.'version.php');
 require_once($dir.'checkpdfbook.php');
@@ -41,15 +38,14 @@ $wgExtensionFunctions[]        = 'wfSetupPdfBook';
 $wgHooks['LanguageGetMagic'][] = 'wfPdfBookLanguageGetMagic';
 
 $wgExtensionCredits['parserhook'][] = array(
-    'name'	      => 'Pdf Book',
-    'author'      => '[http://www.organicdesign.co.nz/nad User:Nad]',
-    'description' => 'Composes a book from articles in a category and exports as a PDF book',
-    'url'	      => 'http://www.mediawiki.org/wiki/Extension:Pdf_Book',
+    'name'          => 'Pdf Book',
+    'author'      => 'Original: [http://www.organicdesign.co.nz/nad User:Nad], updated by Thomas Kock',
+    'description' => 'Composes a book from articles in a category and exports as a PDF book, updated for use with FlowchartWiki',
+    'url'          => 'http://www.flowchartwiki.org',
     'version'     => PDFBOOK_VERSION
 );
 
 class PdfBook {
-
     # Constructor
     function PdfBook() {
         global $wgHooks,$wgParser,$wgPdfBookMagic;
@@ -66,13 +62,11 @@ class PdfBook {
 
     # Expand the book-magic
     function magicBook(&$parser) {
-
         # Populate $argv with both named and numeric parameters
         $argv = array();
         foreach (func_get_args() as $arg) if (!is_object($arg)) {
             if (preg_match('/^(.+?)\\s*=\\s*(.+)$/',$arg,$match)) $argv[$match[1]] = $match[2]; else $argv[] = $arg;
         }
-
         return $text;
     }
 
@@ -83,7 +77,6 @@ class PdfBook {
         global $PdfBookCodePage;
 
         if ($action == 'pdfbook') {
-
             # Log the export
             $msg = $wgUser->getUserPage()->getPrefixedText().' exported as a PDF book';
             $log = new LogPage('pdf',false);
@@ -95,7 +88,7 @@ class PdfBook {
             $right   = $this->setProperty('RightMargin', '1cm');
             $top     = $this->setProperty('TopMargin',   '1cm');
             $bottom  = $this->setProperty('BottomMargin','1cm');
-            $font    = $this->setProperty('Font',	'Arial');
+            $font    = $this->setProperty('Font',    'Arial');
             $size    = $this->setProperty('FontSize',    '8');
             $link    = $this->setProperty('LinkColour',  '217A28');
             $levels  = $this->setProperty('TocLevels',   '2');
@@ -112,29 +105,29 @@ class PdfBook {
                 $cat2   = str_replace(" ","_",$db->strencode($wgTitle->mTextform));
                 $result = $db->query("select page_id from  ".$wgDBprefix."page where page_namespace=14 and page_title='".$cat2."'");
                 while ($row = $db->fetchObject($result)) {
-                    //				    print($row->page_id."\n");
+                    //                    print($row->page_id."\n");
                     $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$row->page_id] = Title::newFromID($row->page_id);
                 }
                 //if ($result instanceof ResultWrapper) $result = $result->result;
-                //		    	        $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$article->getID()] = Title::newFromID($article->getID());
+                //                        $articles[str_pad(0, 10, "0", STR_PAD_LEFT)."_".$article->getID()] = Title::newFromID($article->getID());
                 $result = $db->query("select cl_from, cl_sortkey, to_title as level from  ".$wgDBprefix."categorylinks left outer join ".$wgDBprefix."fchw_relation on (from_id = cl_from) where cl_to = $cat and ((relation is null) or (upper(relation) = 'LEVEL')) group by cl_from, cl_sortkey, level");
                 while ($row = $db->fetchObject($result)) {
-                    //				    print($row->cl_from."\n");
+                    //                    print($row->cl_from."\n");
                     $articles[str_pad($row->level, 10, "0", STR_PAD_LEFT)."_".$row->cl_from] = Title::newFromID($row->cl_from);
                 }
-                //				die();
+                //                die();
                 ksort($articles);
             }
             else {
                 $text = $article->fetchContent();
                 $text = $wgParser->preprocess($text,$title,$opt);
                 if (preg_match_all('/^\\*\\s*\\[{2}\\s*([^\\|\\]]+)\\s*.*?\\]{2}/m',$text,$link))
-                foreach ($links[1] as $link) $articles[] = Title::newFromText($link);
+                    foreach ($links[1] as $link) $articles[] = Title::newFromText($link);
             }
 
             # Format the article's as a single HTML document with absolute URL's
-            $book	  = $title->getText();
-            $html	  = '';
+            $book      = $title->getText();
+            $html      = '';
             $wgArticlePath = $wgServer.$wgArticlePath;
             $wgScriptPath  = $wgServer.$wgScriptPath;
             $wgUploadPath  = $wgServer.$wgUploadPath;
@@ -156,12 +149,12 @@ class PdfBook {
                     $text    = preg_replace('|<table|','<table border borderwidth=2 cellpadding=3 cellspacing=0',$text);
                     $ttext   = basename($ttext);
                     if ($PdfBookCodePage == "")
-                    $html   .= utf8_decode("<h1>$ttext</h1>$text\n");
+                        $html   .= utf8_decode("<h1>$ttext</h1>$text\n");
                     else
-                    if ($PdfBookCodePage == "iso-8859-2")
-                    $html   .= UTF8toISO88592("<h1>$ttext</h1>$text\n");
-                    else
-                    die("Codepage $PdfBookCodePage is not supported");
+                        if ($PdfBookCodePage == "iso-8859-2")
+                            $html   .= UTF8toISO88592("<h1>$ttext</h1>$text\n");
+                        else
+                            die("Codepage $PdfBookCodePage is not supported");
                 }
             }
 
@@ -182,7 +175,7 @@ class PdfBook {
 
                 $charset = "";
                 if ($PdfBookCodePage != "")
-                $charset = " --charset $PdfBookCodePage ";
+                    $charset = " --charset $PdfBookCodePage ";
 
                 # Send the file to the client via htmldoc converter
                 $wgOut->disable();
@@ -195,12 +188,12 @@ class PdfBook {
                 $cmd .= " --toclevels $levels --format pdf14 --numbered $layout";
                 //$cmd  = "htmldoc -t pdf $charset $cmd $file";
                 $file2  = str_replace('/', DIRECTORY_SEPARATOR, $file);
-                //				echo($cmd);
+                //                echo($cmd);
                 global $PdfBookHtmlDoc;
                 if (!isset($PdfBookHtmlDoc))
-                $htmldocpath = "htmldoc";
+                    $htmldocpath = "htmldoc";
                 else
-                $htmldocpath = $PdfBookHtmlDoc;
+                    $htmldocpath = $PdfBookHtmlDoc;
                 putenv("HTMLDOC_NOCGI=1");
                 if (substr(php_uname(), 0, 7) == "Windows") {
                     $exec  = escapeshellarg($htmldocpath)." -t pdf $charset $cmd -f ".escapeshellarg($file2.".pdf")." ".escapeshellarg($file2)."";
@@ -228,7 +221,6 @@ class PdfBook {
             }
             return false;
         }
-
         return true;
     }
 
@@ -267,7 +259,7 @@ function wfPdfBookActionContentHook( &$content_actions ) {
     $action = $wgRequest->getText('action');
     global $wgPdfBook;
     if (!isset($wgPdfBook))
-    return true;
+        return true;
     if ( $wgTitle->getNamespace() != NS_SPECIAL ) {
         if ($wgTitle->getNamespace() == NS_CATEGORY) {
             $content_actions['myact'] = array(

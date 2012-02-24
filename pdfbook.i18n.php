@@ -20,14 +20,14 @@
 // http://www.gnu.org/copyleft/gpl.html
 //
 //////////////////////////////////////////////////////////////
- 
+
 $messages = array();
- 
+
 /* English */
 $messages['en'] = array(
     'pdfbook_ExportPDF' => 'Export to PDF'
 );
-	 
+
 /* Czech */
 $messages['cs'] = array(
     'pdfbook_ExportPDF' => 'PDF export'
@@ -43,4 +43,4 @@ $messages['de'] = array(
     'pdfbook_ExportPDF' => 'PDF erzeugen'
 );
 
-	
+

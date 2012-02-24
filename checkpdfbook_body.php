@@ -36,9 +36,6 @@ class CheckPdfBook extends SpecialPage {
         # Get request data from, e.g.
         $param = $wgRequest->getText('param');
 
-        # Do stuff
-        # ...
-
         function Status($Ok, $Text, $Hint) {
             //<strong>".(($Ok) ? "ok" : "failed")."</strong>
             return "<tr><td style='padding-left: 4px; padding-right: 16px; background: ".(($Ok) ? "green" : "red").";'><strong>".(($Ok) ? "OK" : "ERROR")."</strong></td><td valign='top' style='padding: 8px; background: ".(($Ok) ? "green" : "red").";'><strong>$Text</strong><br /><font color='white'>".(($Ok) ? "" : $Hint)."</font></td></tr>";
@@ -75,8 +72,6 @@ class CheckPdfBook extends SpecialPage {
         }
         $output .= Status($htmldocexec, wfMsg('checkpdfbookHtmlDocExec'), wfMsg('checkpdfbookHtmlDocExecHint'));
 
-
-        ## TODO: TEST HTMLDOC
         $execTest = false;
         $execTestMessage = wfMsg('checkpdfbookHtmlDocExecTestHint1');
         if (($dircheck) && ($htmldocpath) && ($htmldocexec)) {
@@ -138,7 +133,6 @@ class CheckPdfBook extends SpecialPage {
             //unlink($file);
             //if (file_exists($file.".pdf"))
             //unlink($file.".pdf");
-
         }
         $output .= Status($execTest, wfMsg('checkpdfbookHtmlDocExecTest'), $execTestMessage."<br>".$exec);
 
@@ -146,12 +140,6 @@ class CheckPdfBook extends SpecialPage {
         $output .= "<tr><td colspan='2' style='height: 2px'>&nbsp;</td></tr>";
         $output .= Status(($dirtouch) && ($dircheck) && ($htmldocpath) && ($htmldocexec) && ($execTest), wfMsg('checkpdfbookTotal'), "");
         $output .= "</table>";
-
-
-
-
         $wgOut->addHTML( $output );
     }
 }
-
-

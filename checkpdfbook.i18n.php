@@ -22,8 +22,8 @@
 //////////////////////////////////////////////////////////////
 
 $messages = array();
-$messages['en'] = array( 
-        'checkpdfbook' => 'Check PDFBOOK extension',
+$messages['en'] = array(
+    'checkpdfbook' => 'Check PDFBOOK extension',
     'checkpdfbookFolderCreated' => 'PdfBook data folder',
     'checkpdfbookFolderCreatedHint' => 'Please create a folder ./images/pdfbook',
     'checkpdfbookFolderPermissions' => 'PdfBook data folder permissions',
@@ -37,4 +37,3 @@ $messages['en'] = array(
     'checkpdfbookHtmlDocExecTestHint2' => 'Problem creating test .pdf',
     'checkpdfbookTotal' => 'Total status'
 );
-
