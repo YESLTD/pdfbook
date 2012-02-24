@@ -1,3 +1,11 @@
+PdfBook 1.1.0-RC4
+    * pdfbook.php: changed unique-Filename to 'pdf-book-' (added "-")
+    * pdfbook.php: added @unlink($file2.".pdf"); to delete temp. pdf.
+      previously the directory was filled with temp. .pdf files and required
+      some periodic cleanup.
+    * Special:CheckPdfBook: Testing before creation of .pdf,
+      fixed Path/Directory issues on Windows, including " " <space> in path
+
 PdfBook 1.1.0-RC3
     
     * Special:CheckPdfBook create sample pdf to check proper installation
