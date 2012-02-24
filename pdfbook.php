@@ -96,7 +96,7 @@ class PdfBook {
 			else {
 				$text = $article->fetchContent();
 				$text = $wgParser->preprocess($text,$title,$opt);
-				if (preg_match_all('/^\\*\\s*\\[{2}\\s*([^\\|\\]]+)\\s*.*?\\]{2}/m',$text,$links))
+				if (preg_match_all('/^\\*\\s*\\[{2}\\s*([^\\|\\]]+)\\s*.*?\\]{2}/m',$text,$link))
 					foreach ($links[1] as $link) $articles[] = Title::newFromText($link);
 			}
  
@@ -146,13 +146,29 @@ class PdfBook {
 				header("Content-Type: application/pdf");
 				header("Content-Disposition: attachment; filename=\"$book.pdf\"");
 				$cmd  = "--left $left --right $right --top $top --bottom $bottom";
-				$cmd .= " --header ... --footer .1. --headfootsize 8 --quiet --jpeg --color";
-				$cmd .= " --bodyfont $font --fontsize $size --linkstyle plain --linkcolor $links";
+				//$cmd .= " --header ... --footer .1. --headfootsize 8 --quiet --jpeg --color";
+				$cmd .= " --headfootsize 8 --quiet --jpeg --color";
+				$cmd .= " --bodyfont $font --fontsize $size --linkstyle plain --linkcolor $link";
 				$cmd .= " --toclevels $levels --format pdf14 --numbered $layout";
-				$cmd  = "htmldoc -t pdf --charset iso-8859-1 $cmd $file";
-				putenv("HTMLDOC_NOCGI=1");
-				passthru($cmd);
-				@unlink($file);
+			        //$cmd  = "htmldoc -t pdf --charset iso-8859-1 $cmd $file";
+	$file2  = str_replace('/', DIRECTORY_SEPARATOR, $file);
+	//				echo($cmd);			
+	global $PdfBookHtmlDoc;
+	if (!isset($PdfBookHtmlDoc)) 
+	    $htmldocpath = "htmldoc";
+	  else
+	    $htmldocpath = $PdfBookHtmlDoc;
+	putenv("HTMLDOC_NOCGI=1");
+	if (substr(php_uname(), 0, 7) == "Windows") {
+	    $cmd  = escapeshellarg($htmldocpath)." -t pdf $cmd -f ".escapeshellarg($file2.".pdf")." ".escapeshellarg($file2)."";
+	    $obj = new COM("WScript.Shell");
+	    $obj->Run($cmd, 1, true);
+	    readfile($file2.".pdf");
+	} else {
+	    $cmd  = escapeshellarg($htmldocpath)." -t pdf $cmd ".escapeshellarg($file2)."";
+	    passthru($cmd);
+	}
+					@unlink($file2);
 			}
 			return false;
 		}
